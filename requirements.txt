@@ -1,7 +1,14 @@
-fastapi
-uvicorn
-langchain
-langchain-google-genai
-langchain-chroma
-pydantic
-pysqlite3-binary
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+
+# LangChain + Gemini
+langchain==0.3.13
+langchain-google-genai==2.0.7
+langchain-community==0.3.13
+
+# ChromaDB
+chromadb==0.6.3
+
+# Utilities
+python-dotenv==1.0.1
