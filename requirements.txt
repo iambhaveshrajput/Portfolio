@@ -7,8 +7,7 @@ langchain==0.3.13
 langchain-google-genai==2.0.7
 langchain-community==0.3.13
 
-# ChromaDB
-chromadb==0.6.3
+pinecone-client
 
 # Utilities
 python-dotenv==1.0.1
