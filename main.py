@@ -8,10 +8,17 @@ import uvicorn
 app = FastAPI(title="Portfolio Hybrid Chatbot API")
 
 # Middleware configuration
+# Updated origins list to include both of your Netlify domains
+origins = [
+    "https://bhaveshrajputportfolio.netlify.app", # The link you confirmed
+    "https://outportfolio.netlify.app",            # The link seen in your live screenshot
+    "http://localhost:3000",                       # For local testing
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://bhaveshrajputportfolio.netlify.app/"],  # Set this to ["https://your-site.netlify.app"] later for security
-    allow_credentials=True,
+    allow_origins=origins,
+    allow_credentials=True, # Required for secure communication with specific origins
     allow_methods=["*"],
     allow_headers=["*"],
 )
