@@ -128,14 +128,8 @@
     }
 
     @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     h2::after {
@@ -198,26 +192,6 @@
       overflow: hidden;
     }
 
-    .skills-list li::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-      transition: left 0.5s ease;
-    }
-
-    .skills-list li:hover {
-      transform: translateY(-8px) scale(1.05);
-      box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
-    }
-
-    .skills-list li:hover::before {
-      left: 100%;
-    }
-
     /* Projects */
     .projects-grid {
       display: grid;
@@ -239,46 +213,16 @@
       animation: fadeInUp 1s ease backwards;
     }
 
-    .project-card:nth-child(1) { animation-delay: 0.2s; }
-    .project-card:nth-child(2) { animation-delay: 0.4s; }
-    .project-card:nth-child(3) { animation-delay: 0.6s; }
-
-    .project-card::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .project-card:hover {
-      transform: translateY(-12px) scale(1.02);
-      box-shadow: 0 15px 50px rgba(102, 126, 234, 0.4);
-      border-color: rgba(102, 126, 234, 0.5);
-    }
-
-    .project-card:hover::before {
-      opacity: 1;
-    }
-
     .project-card h3 {
       color: #fff;
       font-size: 1.6rem;
       margin-bottom: 15px;
-      position: relative;
-      z-index: 1;
     }
 
     .project-card p {
       color: #b8c1ec;
       font-size: 1rem;
       margin-bottom: 20px;
-      position: relative;
-      z-index: 1;
     }
 
     .project-card a {
@@ -290,128 +234,203 @@
       border-radius: 50px;
       transition: all 0.3s ease;
       font-weight: 600;
-      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-      position: relative;
-      z-index: 1;
     }
 
-    .project-card a:hover {
-      transform: scale(1.05);
-      box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
+    /* CHATBOT UI - NEW STYLES */
+    .chatbot-container {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      z-index: 2000;
     }
 
-    /* Team Section */
-    .team-grid {
-      display: flex;
-      justify-content: center;
-      margin-top: 40px;
-    }
-
-    .team-card {
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(10px);
-      padding: 45px;
-      border-radius: 25px;
-      text-align: center;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      transition: all 0.4s ease;
-      max-width: 400px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      animation: fadeInUp 1s ease 0.6s backwards;
-    }
-
-    .team-card:hover {
-      transform: translateY(-12px);
-      box-shadow: 0 15px 50px rgba(102, 126, 234, 0.4);
-      border-color: rgba(102, 126, 234, 0.5);
-    }
-
-    .team-card h3 {
-      margin: 15px 0;
-      color: #fff;
-      font-size: 1.8rem;
+    /* Floating Button */
+    .chat-toggle-btn {
+      width: 65px;
+      height: 65px;
+      border-radius: 50%;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .team-card p {
-      font-size: 1.05rem;
-      color: #b8c1ec;
-      margin-bottom: 25px;
-      line-height: 1.7;
-    }
-
-    /* Social Links */
-    .social-links {
+      color: white;
+      border: none;
+      font-size: 1.8rem;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
       display: flex;
       justify-content: center;
-      gap: 25px;
+      align-items: center;
     }
 
-    .social-links a {
-      font-size: 1.8rem;
-      color: #b8c1ec;
-      transition: all 0.3s ease;
-      width: 55px;
-      height: 55px;
+    .chat-toggle-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 12px 35px rgba(102, 126, 234, 0.7);
+    }
+
+    /* Chat Window */
+    .chat-window {
+      position: absolute;
+      bottom: 85px;
+      right: 0;
+      width: 380px;
+      height: 500px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      
+      /* Animation properties */
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .chat-window.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: all;
+    }
+
+    /* Chat Header */
+    .chat-header {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chat-header h3 {
+      font-size: 1.1rem;
+      color: #fff;
       display: flex;
       align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      background: rgba(102, 126, 234, 0.1);
-      border: 2px solid rgba(102, 126, 234, 0.3);
+      gap: 10px;
     }
 
-    .social-links a:hover {
-      color: #fff;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      transform: translateY(-5px) rotate(360deg);
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
-      border-color: transparent;
-    }
-
-    /* Footer */
-    footer {
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(20px);
+    .close-chat-btn {
+      background: none;
+      border: none;
       color: #b8c1ec;
-      text-align: center;
-      padding: 30px;
-      margin-top: 60px;
-      font-size: 1rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: color 0.2s;
     }
 
-    /* Responsive */
-    @media(max-width: 768px) {
-      nav {
-        flex-direction: column;
-        gap: 15px;
-      }
+    .close-chat-btn:hover { color: #fff; }
 
-      .nav-links {
-        gap: 20px;
-      }
+    /* Chat Body */
+    .chat-body {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
 
-      h2 {
-        font-size: 2.2rem;
-      }
+    /* Custom Scrollbar for Chat */
+    .chat-body::-webkit-scrollbar { width: 6px; }
+    .chat-body::-webkit-scrollbar-thumb { background: rgba(102, 126, 234, 0.5); border-radius: 10px; }
 
-      section {
-        padding: 60px 20px;
-      }
+    /* Chat Messages */
+    .msg-bubble {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      animation: fadeIn 0.3s ease;
+    }
 
-      .skills-list li {
-        padding: 12px 25px;
-        font-size: 1rem;
-      }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-      .social-links a {
-        width: 50px;
-        height: 50px;
-        font-size: 1.5rem;
+    .bot-msg {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #e0e0e0;
+      align-self: flex-start;
+      border-bottom-left-radius: 5px;
+    }
+
+    .user-msg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      align-self: flex-end;
+      border-bottom-right-radius: 5px;
+    }
+
+    /* Chat Input Area */
+    .chat-input-container {
+      padding: 15px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      gap: 10px;
+      background: rgba(10, 14, 39, 0.5);
+    }
+
+    .chat-input-container input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 15px;
+      border-radius: 25px;
+      color: #fff;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .chat-input-container input:focus {
+      border-color: #667eea;
+    }
+
+    .chat-input-container input::placeholder {
+      color: #8892b0;
+    }
+
+    .chat-send-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+
+    .chat-send-btn:hover {
+      transform: scale(1.05);
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+      display: none;
+      align-self: flex-start;
+      color: #8892b0;
+      font-size: 0.85rem;
+      margin-left: 10px;
+      font-style: italic;
+    }
+
+    /* Responsive Chat */
+    @media(max-width: 480px) {
+      .chat-window {
+        width: 90vw;
+        height: 70vh;
+        bottom: 80px;
+        right: -10px;
       }
     }
 
@@ -434,7 +453,6 @@
   </style>
 </head>
 <body>
-  <!-- Header -->
   <header>
     <nav>
       <h1 class="logo">My Portfolio</h1>
@@ -447,7 +465,6 @@
     </nav>
   </header>
 
-  <!-- About Me Section -->
   <section id="about">
     <div class="container">
       <h2>About Me</h2>
@@ -455,38 +472,31 @@
     </div>
   </section>
 
-  <!-- Skills Section -->
   <section id="skills">
     <div class="container">
       <h2>Skills</h2>
       <ul class="skills-list">
-        <li>HTML5</li>
-        <li>CSS3</li>
-        <li>JavaScript</li>
-        <li>React</li>
-        <li>Python</li>
-        <li>Machine Learning</li>
+        <li>HTML5</li><li>CSS3</li><li>JavaScript</li><li>React</li><li>Python</li><li>Machine Learning</li>
       </ul>
     </div>
   </section>
 
-  <!-- Projects Section -->
   <section id="projects">
     <div class="container">
       <h2>Projects</h2>
       <div class="projects-grid">
         <div class="project-card">
-          <h3>Recipe recommender based on ingredients</h3>
+          <h3>Recipe recommender</h3>
           <p>smart recipe recommender based on ingredients developed using machine learning.</p>
           <a href="https://recipe-recommender-0uoq.onrender.com" target="_blank">View Project</a>
         </div>
         <div class="project-card">
-          <h3>NeuroTask AI | AI-Powered Task Manager</h3>
-          <p>Developed a Python full-stack Kanban application to solve complex task management challenges through automated, algorithmic prioritization.</p>
+          <h3>NeuroTask AI</h3>
+          <p>Developed a Python full-stack Kanban application to solve complex task management challenges.</p>
           <a href="https://neurotask-20b3.onrender.com" target="_blank">View Project</a>
         </div>
         <div class="project-card">
-          <h3>AI-Integrated coffee shop app</h3>
+          <h3>CoffeeConnect</h3>
           <p>Developed a mobile based cross platform application using Kivy python.</p>
           <a href="https://www.mediafire.com/file/me7soozmntqi7dm/CoffeeConnect.apk/file" target="_blank">View Project</a>
         </div>
@@ -494,38 +504,40 @@
     </div>
   </section>
 
-  <!-- About Us Section -->
-  <section id="team">
-    <div class="container">
-      <h2>About Us</h2>
-      <div class="team-grid">
-        <div class="team-card">
-          <h3>Bhavesh Rajput</h3>
-          <p>Frontend & Backend Developer passionate about crafting clean, modern web experiences.</p>
-          
-          <div class="social-links">
-            <a href="mailto:bhaveshrajput4321@gmail.com" target="_blank" title="Email">
-              <i class="fas fa-envelope"></i>
-            </a>
-            <a href="https://github.com/iambhaveshrajput" target="_blank" title="GitHub">
-              <i class="fab fa-github"></i>
-            </a>
-            <a href="https://www.linkedin.com/in/bhavesh-rajput-3972a7367" target="_blank" title="LinkedIn">
-              <i class="fab fa-linkedin"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
   <footer>
     <p>© 2025 My Portfolio | Designed by Bhavesh Rajput</p>
   </footer>
 
+  <div class="chatbot-container">
+    
+    <div id="ai-chat-window" class="chat-window">
+      <div class="chat-header">
+        <h3><i class="fas fa-sparkles"></i> Portfolio AI</h3>
+        <button class="close-chat-btn" onclick="toggleChat()"><i class="fas fa-times"></i></button>
+      </div>
+      
+      <div id="chat-body" class="chat-body">
+        <div class="msg-bubble bot-msg">
+          Hi! I'm the AI assistant for Bhavesh's portfolio. Ask me about his projects, skills, or experience!
+        </div>
+        <div id="typing-indicator" class="typing-indicator">Bot is typing...</div>
+      </div>
+      
+      <div class="chat-input-container">
+        <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="handleEnter(event)">
+        <button class="chat-send-btn" onclick="sendChatMessage()">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+
+    <button class="chat-toggle-btn" onclick="toggleChat()">
+      <i class="fas fa-robot"></i>
+    </button>
+  </div>
+
   <script>
-    // Create floating particles
+    // Existing Particles & Scroll Logic
     function createParticles() {
       for (let i = 0; i < 30; i++) {
         const particle = document.createElement('div');
@@ -537,19 +549,83 @@
         document.body.appendChild(particle);
       }
     }
-
     createParticles();
 
-    // Smooth scroll
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      });
-    });
+    // ==============================
+    // CHATBOT LOGIC
+    // ==============================
+
+    // IMPORTANT: Replace this with your actual Render/Railway URL
+    const BACKEND_URL = 'portfolio-production-998b.up.railway.app'; 
+
+    function toggleChat() {
+      const chatWindow = document.getElementById('ai-chat-window');
+      chatWindow.classList.toggle('active');
+    }
+
+    function handleEnter(e) {
+      if (e.key === 'Enter') sendChatMessage();
+    }
+
+    async function sendChatMessage() {
+      const inputField = document.getElementById('chat-input');
+      const chatBody = document.getElementById('chat-body');
+      const typingIndicator = document.getElementById('typing-indicator');
+      const message = inputField.value.trim();
+
+      if (!message) return;
+
+      // 1. Add User Message to UI
+      const userBubble = document.createElement('div');
+      userBubble.className = 'msg-bubble user-msg';
+      userBubble.textContent = message;
+      
+      // Insert right before the typing indicator
+      chatBody.insertBefore(userBubble, typingIndicator);
+      
+      // Clear input and scroll to bottom
+      inputField.value = '';
+      chatBody.scrollTop = chatBody.scrollHeight;
+
+      // 2. Show Typing Indicator
+      typingIndicator.style.display = 'block';
+      chatBody.scrollTop = chatBody.scrollHeight;
+
+      try {
+        // 3. Send Request to Backend
+        const response = await fetch(BACKEND_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+        });
+        
+        if (!response.ok) throw new Error("Server Error");
+        
+        const data = await response.json();
+        
+        // 4. Hide Typing Indicator & Add Bot Message
+        typingIndicator.style.display = 'none';
+        
+        const botBubble = document.createElement('div');
+        botBubble.className = 'msg-bubble bot-msg';
+        
+        // Parse basic markdown like bold text if needed
+        let formattedText = data.response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        botBubble.innerHTML = formattedText;
+        
+        chatBody.insertBefore(botBubble, typingIndicator);
+
+      } catch (error) {
+        typingIndicator.style.display = 'none';
+        const errorBubble = document.createElement('div');
+        errorBubble.className = 'msg-bubble bot-msg';
+        errorBubble.style.color = '#ff6b6b';
+        errorBubble.textContent = "Error: Could not connect to the server.";
+        chatBody.insertBefore(errorBubble, typingIndicator);
+      }
+      
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
   </script>
 </body>
 </html>
