@@ -22,6 +22,7 @@ class HybridChatbot:
         if not GOOGLE_API_KEY or not PINECONE_API_KEY:
             raise OSError("API Keys missing in Render Environment settings.")
 
+        # 2026 Standard Models
         self.embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-2-preview", google_api_key=GOOGLE_API_KEY)
         self.llm = ChatGoogleGenerativeAI(model="gemini-3-flash-preview", google_api_key=GOOGLE_API_KEY, temperature=0.3)
         self.pc = Pinecone(api_key=PINECONE_API_KEY)
@@ -32,7 +33,7 @@ class HybridChatbot:
                 print(f"🚀 Creating index: {INDEX_NAME}")
                 self.pc.create_index(
                     name=INDEX_NAME,
-                    dimension=3072,
+                    dimension=3072, # Dimension for gemini-embedding-2
                     metric="cosine",
                     spec=ServerlessSpec(cloud="aws", region="us-east-1")
                 )
@@ -70,8 +71,29 @@ class HybridChatbot:
         context = "\n".join([m["metadata"]["text"] for m in res["matches"] if m["score"] > 0.3])
         
         prompt = f"Context about Bhavesh:\n{context}\n\nQuestion: {question}"
-        resp = await asyncio.to_thread(self.llm.invoke, [SystemMessage(content="You are a helpful portfolio assistant."), HumanMessage(content=prompt)])
-        return {"answer": resp.content, "source": "hybrid", "confidence": 0.8}
+        
+        # Invoke the LLM
+        resp = await asyncio.to_thread(self.llm.invoke, [
+            SystemMessage(content="You are a helpful portfolio assistant for Bhavesh Rajput."), 
+            HumanMessage(content=prompt)
+        ])
+        
+        # ── THE FIX: Extracting the answer string ──
+        # Gemini 3 returns a dictionary containing 'text' and 'signature'
+        content = resp.content
+        if isinstance(content, dict):
+            answer_text = content.get("text", str(content))
+        elif isinstance(content, list):
+            # Extract text from content blocks if returned as a list
+            answer_text = "".join([c.get("text", "") if isinstance(c, dict) else str(c) for c in content])
+        else:
+            answer_text = str(content)
+
+        return {
+            "answer": answer_text, 
+            "source": "hybrid" if context else "llm", 
+            "confidence": 0.9
+        }
 
     def is_ready(self):
         return True
