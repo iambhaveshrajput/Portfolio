@@ -1,7 +1,6 @@
 """
-HybridChatbot — RAG + LLM with Gemini 1.5 Flash classifier
-API key is read ONLY from the GOOGLE_API_KEY environment variable.
-Never hardcode it — set it in .env or your deployment environment.
+HybridChatbot — RAG + LLM with Gemini 1.5 Flash
+Updated to use Pinecone Cloud for persistent vector storage.
 """
 
 import os
@@ -13,28 +12,25 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
-import chromadb
-from chromadb.utils import embedding_functions
-from langchain_google_genai import ChatGoogleGenerativeAI
+# Updated Imports
+from pinecone import Pinecone, ServerlessSpec
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain.schema import HumanMessage, SystemMessage
 from langchain.text_splitter import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 
 # ── Config ──────────────────────────────────────────────────────────────────
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
-if not GOOGLE_API_KEY:
-    raise EnvironmentError(
-        "GOOGLE_API_KEY environment variable is not set.\n"
-        "Create a .env file with:  GOOGLE_API_KEY=your_key_here\n"
-        "Or export it:             export GOOGLE_API_KEY=your_key_here"
-    )
+PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
+
+if not GOOGLE_API_KEY or not PINECONE_API_KEY:
+    raise EnvironmentError("Ensure both GOOGLE_API_KEY and PINECONE_API_KEY are set in environment variables.")
 
 PORTFOLIO_MD = Path(__file__).parent / "portfolio.md"
-CHROMA_PATH  = Path(__file__).parent / "chroma_db"
-COLLECTION   = "portfolio_knowledge"
+INDEX_NAME   = "portfolio-knowledge"
 CHUNK_SIZE   = 600
 CHUNK_OVERLAP= 80
 TOP_K        = 4
-MIN_SCORE    = 0.35
+MIN_SCORE    = 0.35  # Threshold for relevance
 
 # ── Prompts ──────────────────────────────────────────────────────────────────
 CLASSIFIER_SYSTEM = """You are a query classifier for a portfolio chatbot.
@@ -65,6 +61,7 @@ PORTFOLIO CONTEXT:
 
 class HybridChatbot:
     def __init__(self):
+        # 1. Initialize LLMs
         self.llm = ChatGoogleGenerativeAI(
             model="gemini-1.5-flash",
             google_api_key=GOOGLE_API_KEY,
@@ -77,18 +74,31 @@ class HybridChatbot:
             temperature=0.0,
             convert_system_message_to_human=True,
         )
-        self.ef = embedding_functions.GoogleGenerativeAiEmbeddingFunction(
-            api_key=GOOGLE_API_KEY,
-            model_name="models/embedding-001",
+
+        # 2. Initialize Embeddings (standardizing to LangChain for cloud compatibility)
+        self.embeddings = GoogleGenerativeAIEmbeddings(
+            model="models/embedding-001",
+            google_api_key=GOOGLE_API_KEY
         )
-        self.client = chromadb.PersistentClient(path=str(CHROMA_PATH))
-        self.collection = self.client.get_or_create_collection(
-            name=COLLECTION,
-            embedding_function=self.ef,
-            metadata={"hnsw:space": "cosine"},
-        )
-        if self.collection.count() == 0 and PORTFOLIO_MD.exists():
-            print("📚 Auto-ingesting portfolio.md …")
+
+        # 3. Initialize Pinecone
+        self.pc = Pinecone(api_key=PINECONE_API_KEY)
+        
+        # Create index if it doesn't exist
+        if INDEX_NAME not in self.pc.list_indexes().names():
+            self.pc.create_index(
+                name=INDEX_NAME,
+                dimension=768, # models/embedding-001 uses 768 dims
+                metric="cosine",
+                spec=ServerlessSpec(cloud="aws", region="us-east-1")
+            )
+        
+        self.index = self.pc.Index(INDEX_NAME)
+
+        # Check if we need to ingest
+        stats = self.index.describe_index_stats()
+        if stats['total_vector_count'] == 0 and PORTFOLIO_MD.exists():
+            print("📚 Index is empty. Auto-ingesting portfolio.md …")
             self.ingest_documents()
 
         self._history: dict[str, list[dict]] = {}
@@ -96,6 +106,7 @@ class HybridChatbot:
     def ingest_documents(self) -> int:
         if not PORTFOLIO_MD.exists():
             raise FileNotFoundError(f"portfolio.md not found at {PORTFOLIO_MD}")
+        
         text = PORTFOLIO_MD.read_text(encoding="utf-8")
         header_splitter = MarkdownHeaderTextSplitter(
             headers_to_split_on=[("#","h1"),("##","h2"),("###","h3")],
@@ -106,26 +117,46 @@ class HybridChatbot:
             separators=["\n\n","\n",". "," "],
         )
         chunks = char_splitter.split_documents(header_splitter.split_text(text))
+        
         if not chunks:
             raise ValueError("No chunks produced from portfolio.md")
-        self.collection.delete(where={"source": "portfolio.md"})
-        self.collection.upsert(
-            ids=[f"chunk_{i}" for i in range(len(chunks))],
-            documents=[c.page_content for c in chunks],
-            metadatas=[{"source":"portfolio.md","index":i,**c.metadata} for i,c in enumerate(chunks)],
-        )
-        print(f"✅ Ingested {len(chunks)} chunks")
+
+        # Prepare vectors for Pinecone
+        vectors = []
+        for i, chunk in enumerate(chunks):
+            # Generate vector for each chunk
+            embedding = self.embeddings.embed_query(chunk.page_content)
+            vectors.append({
+                "id": f"chunk_{i}",
+                "values": embedding,
+                "metadata": {
+                    "text": chunk.page_content,
+                    "source": "portfolio.md",
+                    **chunk.metadata
+                }
+            })
+
+        # Upsert in batches to Pinecone
+        self.index.upsert(vectors=vectors)
+        print(f"✅ Ingested {len(chunks)} chunks to Pinecone Cloud")
         return len(chunks)
 
     def retrieve(self, query: str) -> list[str]:
-        results = self.collection.query(
-            query_texts=[query],
-            n_results=min(TOP_K, self.collection.count() or 1),
-            include=["documents","distances"],
+        # Embed the user query
+        query_vector = self.embeddings.embed_query(query)
+
+        # Search Pinecone
+        results = self.index.query(
+            vector=query_vector,
+            top_k=TOP_K,
+            include_metadata=True
         )
+
+        # Filter by score and return text
         return [
-            doc for doc, dist in zip(results["documents"][0], results["distances"][0])
-            if dist < (1 - MIN_SCORE)
+            match["metadata"]["text"] 
+            for match in results["matches"] 
+            if match["score"] > MIN_SCORE
         ]
 
     async def classify(self, question: str) -> dict:
@@ -176,4 +207,5 @@ class HybridChatbot:
         return {"answer": answer, "source": mode, "confidence": 0.9 if context_chunks else 0.7}
 
     def is_ready(self) -> bool:
-        return self.collection.count() > 0
+        stats = self.index.describe_index_stats()
+        return stats['total_vector_count'] > 0
