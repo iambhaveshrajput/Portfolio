@@ -32,7 +32,7 @@ class HybridChatbot:
                 print(f"🚀 Creating index: {INDEX_NAME}")
                 self.pc.create_index(
                     name=INDEX_NAME,
-                    dimension=768,
+                    dimension=3072,
                     metric="cosine",
                     spec=ServerlessSpec(cloud="aws", region="us-east-1")
                 )
