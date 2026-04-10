@@ -1,13 +1,7 @@
-fastapi==0.115.5
-uvicorn[standard]==0.32.1
-pydantic==2.10.3
-
-# LangChain + Gemini
-langchain==0.3.13
-langchain-google-genai==2.0.7
-langchain-community==0.3.13
-
+fastapi>=0.115.0
+uvicorn[standard]
+pydantic>=2.12.0
+langchain>=0.3.15
+langchain-google-genai>=4.2.0
 pinecone
-
-# Utilities
-python-dotenv==1.0.1
+python-dotenv
