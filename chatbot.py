@@ -9,9 +9,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from pinecone import Pinecone, ServerlessSpec
+# Updated imports for LangChain 0.3+
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
-from langchain.schema import HumanMessage, SystemMessage
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # ── Key Loading ──
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "").strip()
@@ -21,13 +22,13 @@ if not GOOGLE_API_KEY or not PINECONE_API_KEY:
     raise OSError("API Keys missing in Render settings. Check the 'Environment' tab.")
 
 PORTFOLIO_MD = Path(__file__).parent / "portfolio.md"
-# Current 2026 best-practice model naming
-EMBEDDING_MODEL = "models/gemini-embedding-001"
+# Using 2026 state-of-the-art embedding model
+EMBEDDING_MODEL = "text-embedding-004"
 INDEX_NAME = "portfolio-knowledge"
 
 class HybridChatbot:
     def __init__(self):
-        # Initializing with explicit model path to avoid 400 format errors
+        # Initializing models
         self.embeddings = GoogleGenerativeAIEmbeddings(
             model=EMBEDDING_MODEL, 
             google_api_key=GOOGLE_API_KEY
@@ -46,7 +47,7 @@ class HybridChatbot:
             print(f"🚀 Creating Pinecone Index: {INDEX_NAME}...")
             self.pc.create_index(
                 name=INDEX_NAME, 
-                dimension=768, 
+                dimension=768, # text-embedding-004 uses 768 dims
                 metric="cosine", 
                 spec=ServerlessSpec(cloud="aws", region="us-east-1")
             )
@@ -54,14 +55,13 @@ class HybridChatbot:
                 time.sleep(2)
 
         self.index = self.pc.Index(INDEX_NAME)
+        self._history = {}
 
-        # Check for data presence in Pinecone
+        # Initial data check
         stats = self.index.describe_index_stats()
         if stats['total_vector_count'] == 0:
             print("📚 First-time deploy: Ingesting portfolio data...")
             self.ingest_documents()
-
-        self._history = {}
 
     def ingest_documents(self):
         if not PORTFOLIO_MD.exists(): 
@@ -69,12 +69,12 @@ class HybridChatbot:
             return 0
         
         text = PORTFOLIO_MD.read_text(encoding="utf-8")
+        # Updated text splitter for LangChain 0.3
         char_splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=80)
         chunks = char_splitter.split_text(text)
         
         vectors = []
         for i, chunk in enumerate(chunks):
-            # Batch embedding for efficiency
             vectors.append({
                 "id": f"chunk_{i}",
                 "values": self.embeddings.embed_query(chunk),
@@ -88,25 +88,20 @@ class HybridChatbot:
     def retrieve(self, query: str):
         v = self.embeddings.embed_query(query)
         res = self.index.query(vector=v, top_k=3, include_metadata=True)
-        return [m["metadata"]["text"] for m in res["matches"] if m["score"] > 0.35]
+        return [m["metadata"]["text"] for m in res["matches"] if m["score"] > 0.3]
 
     async def respond(self, question: str, session_id: str = "default"):
         context_chunks = self.retrieve(question)
         context_text = "\n".join(context_chunks)
         
-        # Simplified hybrid prompt for portfolio use
-        prompt = (
-            f"You are a helpful AI assistant for Bhavesh Rajput. Use the context below to answer.\n"
-            f"Context: {context_text}\n\n"
-            f"User Question: {question}"
-        )
+        sys_msg = SystemMessage(content=(
+            f"You are a helpful AI assistant for Bhavesh Rajput. Answer using this context:\n"
+            f"{context_text}"
+        ))
+        user_msg = HumanMessage(content=question)
         
-        resp = await asyncio.to_thread(self.llm.invoke, prompt)
-        return {
-            "answer": resp.content, 
-            "source": "hybrid", 
-            "confidence": 0.85 if context_chunks else 0.6
-        }
+        resp = await asyncio.to_thread(self.llm.invoke, [sys_msg, user_msg])
+        return {"answer": resp.content, "source": "hybrid", "confidence": 0.8}
 
     def is_ready(self):
         return True
