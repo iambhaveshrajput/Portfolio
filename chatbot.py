@@ -22,7 +22,7 @@ class HybridChatbot:
         if not GOOGLE_API_KEY or not PINECONE_API_KEY:
             raise OSError("API Keys missing in Render Environment settings.")
 
-        self.embeddings = GoogleGenerativeAIEmbeddings(model="text-embedding-004", google_api_key=GOOGLE_API_KEY)
+        self.embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-2-preview", google_api_key=GOOGLE_API_KEY)
         self.llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=GOOGLE_API_KEY, temperature=0.3)
         self.pc = Pinecone(api_key=PINECONE_API_KEY)
         
