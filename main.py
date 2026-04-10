@@ -10,7 +10,7 @@ app = FastAPI(title="Portfolio Hybrid Chatbot API")
 # Middleware configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Set this to ["https://your-site.netlify.app"] later for security
+    allow_origins=["https://bhaveshrajputportfolio.netlify.app/"],  # Set this to ["https://your-site.netlify.app"] later for security
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
