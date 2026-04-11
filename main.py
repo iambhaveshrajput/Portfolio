@@ -11,7 +11,7 @@ app = FastAPI(title="Portfolio Hybrid Chatbot API")
 # Updated origins list to include both of your Netlify domains
 origins = [
     "https://bhaveshrajputportfolio.netlify.app", # The link you confirmed
-    "https://outportfolio.netlify.app",            # The link seen in your live screenshot
+    "https://outportfolio.netlify.app",            
     "http://localhost:3000",                       # For local testing
 ]
 
