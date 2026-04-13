@@ -11,7 +11,7 @@ A high-performance, full-stack portfolio featuring an **AI Assistant** built wit
 ---
 
 ## 🛠 Tech Stack
-* **Frontend:** React & Tailwind CSS (Deployed on **Netlify**)
+* **Frontend:** HTML & Tailwind CSS (Deployed on **Netlify**)
 * **Backend:** FastAPI & Python (Deployed on **Render**)
 * **AI Engine:** Google Gemini 3 Flash
 * **Vector Database:** Pinecone (Serverless)
